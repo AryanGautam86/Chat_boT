@@ -2,14 +2,18 @@
 # agent.py
 import os
 from pathlib import Path
-#from langchain_classic.chains import RetrievalQA
+from langchain_classic.chains import RetrievalQA
 #from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+#from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv
-######
-from langchain_google_genai import ChatGoogleGenerativeAI
-##########
+
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI,
+    GoogleGenerativeAIEmbeddings,
+)
+#
+
 
 load_dotenv()  # loads .env
 #OPENROUTER_KEY = os.getenv("OPENAI_API_KEY")
@@ -30,14 +34,27 @@ def init_vectorstore():
     global vectorstore, embedding_model, llm
 
     # Initialize embeddings
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    # embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    ###########
+    embedding_model = GoogleGenerativeAIEmbeddings(
+    model="models/gemini-embedding-2",
+    google_api_key=os.getenv("GEMINI_API_KEY"),
+)
+    ########
     llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     google_api_key=os.getenv("GEMINI_API_KEY"),
     temperature=0,)
 
-    if Path("faiss.index").exists():
-        vectorstore = FAISS.load_local("faiss.index", embedding_model, allow_dangerous_deserialization=True)
+    # if Path("faiss.index").exists():
+    #     vectorstore = FAISS.load_local("faiss.index", embedding_model, allow_dangerous_deserialization=True)
+    if Path("index").exists():
+        vectorstore = FAISS.load_local(
+        "index",
+        embedding_model,
+        allow_dangerous_deserialization=True
+    )
+        
 ############
         print("=" * 50)
         print("FAISS loaded successfully")
@@ -62,37 +79,66 @@ def init_vectorstore():
 
 
 # Add a document to FAISS
+# def add_document(title: str, content: str):
+#     """
+#     Add a new document to the FAISS vectorstore and save index.
+#     """
+#     # global vectorstore, qa_chain, embedding_model
+#     global vectorstore, embedding_model
+
+#     if embedding_model is None:
+#         init_vectorstore()
+
+#     if vectorstore is None:
+#         # First document
+#         vectorstore = FAISS.from_texts([content], embedding=embedding_model, metadatas=[{"title": title}])
+#         # qa_chain = RetrievalQA.from_chain_type(
+#         #     llm=ChatOpenAI(
+#         #         #model="tngtech/deepseek-r1t2-chimera:free",
+#         #         model="deepseek/deepseek-r1",
+#         #         temperature=0,
+#         #         openai_api_key=OPENROUTER_KEY,
+#         #         openai_api_base="https://openrouter.ai/api/v1",
+#         #     ),
+#         #     chain_type="stuff",
+#         #     retriever=vectorstore.as_retriever(),
+#         # )
+#     else:
+#         # Add to existing vectorstore
+#         vectorstore.add_texts([content], metadatas=[{"title": title}])
+
+#     # Save index locally
+#     # vectorstore.save_local("faiss.index")
+#     vectorstore.save_local("index")
+##############
 def add_document(title: str, content: str):
-    """
-    Add a new document to the FAISS vectorstore and save index.
-    """
-    # global vectorstore, qa_chain, embedding_model
     global vectorstore, embedding_model
 
+    print("Inside add_document")
+
     if embedding_model is None:
+        print("Initializing vectorstore...")
         init_vectorstore()
 
-    if vectorstore is None:
-        # First document
-        vectorstore = FAISS.from_texts([content], embedding=embedding_model, metadatas=[{"title": title}])
-        # qa_chain = RetrievalQA.from_chain_type(
-        #     llm=ChatOpenAI(
-        #         #model="tngtech/deepseek-r1t2-chimera:free",
-        #         model="deepseek/deepseek-r1",
-        #         temperature=0,
-        #         openai_api_key=OPENROUTER_KEY,
-        #         openai_api_base="https://openrouter.ai/api/v1",
-        #     ),
-        #     chain_type="stuff",
-        #     retriever=vectorstore.as_retriever(),
-        # )
-    else:
-        # Add to existing vectorstore
-        vectorstore.add_texts([content], metadatas=[{"title": title}])
+    print("Embedding model initialized")
 
-    # Save index locally
-    vectorstore.save_local("faiss.index")
-    
+    if vectorstore is None:
+        print("Creating new FAISS index...")
+        vectorstore = FAISS.from_texts(
+            [content],
+            embedding=embedding_model,
+            metadatas=[{"title": title}]
+        )
+    else:
+        print("Adding to existing FAISS index...")
+        vectorstore.add_texts(
+            [content],
+            metadatas=[{"title": title}]
+        )
+
+    print("Saving FAISS...")
+    vectorstore.save_local("index")
+    print("Saved successfully")
 #############
 def ask_question(query: str):
     #global vectorstore
