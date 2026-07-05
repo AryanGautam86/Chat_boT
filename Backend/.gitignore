@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment Variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# SQLite Database (Uncomment if you don't want to upload it)
+# test.db
+
+# FAISS Index (Uncomment if generated every time)
+# faiss.index/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Build
+build/
+dist/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Python egg files
+*.egg-info/
+.eggs/
+
+# Temporary files
+*.tmp
+*.temp

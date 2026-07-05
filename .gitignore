@@ -1,0 +1,13 @@
+# Ignore frontend dependencies
+Frontend/node_modules/
+
+# Frontend build
+Frontend/dist/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
